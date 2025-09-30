@@ -24,6 +24,7 @@
             opentofu # Infrastructure and SaaS management
             sops # Secrets managements
             age # Encryption tool
+            just # Task runner
           ];
         };
       });
