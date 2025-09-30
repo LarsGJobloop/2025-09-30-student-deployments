@@ -34,6 +34,12 @@ variable "server_type" {
   sensitive = false
 }
 
+variable "datacenter" {
+  description = "The datacenter to place the server in."
+  type = string
+  sensitive = false
+}
+
 variable "debug_key_id" {
   description = "FOR DEBUG! ID of SSH key uploaded to Hetzner."
   type = string

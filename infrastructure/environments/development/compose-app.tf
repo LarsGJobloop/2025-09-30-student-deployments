@@ -12,7 +12,8 @@ module "compose_server" {
   branch = "main"
   manifest_path = "manifests/development/compose.yaml"
 
-  server_type = "cax21"
+  server_type = "cax21" # Hetzner SKU -> arch=x86, cores=4vCPU, ram=8GB, hdd=80GB
+  datacenter = "hel1-dc2" # Helsinki
 
   debug_key_id = hcloud_ssh_key.debug_key.id # TODO! Remove once complete
 }
