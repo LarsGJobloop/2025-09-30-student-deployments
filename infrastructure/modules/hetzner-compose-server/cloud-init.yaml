@@ -192,6 +192,9 @@ write_files:
     content: ""
 
   # Extra TTYs
+  - path: /etc/systemd/system/getty.target
+    permissions: '0000'
+    content: ""
   - path: /etc/systemd/system/getty@.service
     permissions: '0000'
     content: ""
