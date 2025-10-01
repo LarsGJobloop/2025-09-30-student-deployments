@@ -86,62 +86,162 @@ write_files:
       net.ipv6.conf.all.accept_source_route=0
       net.ipv6.conf.default.accept_source_route=0
 
-  # Harden baseline image
-  - path: /etc/systemd/system/harden.service
-    permissions: '0644'
-    content: |
-      [Unit]
-      Description=Disable unneeded baseline services
-      After=network.target
+  # Harden baseline image by masking unwanted services
+  # Package mgmt noise
+  - path: /etc/systemd/system/apt-daily.timer
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/apt-daily-upgrade.timer
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/unattended-upgrades.service
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/dpkg-db-backup.service
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/man-db.timer
+    permissions: '0000'
+    content: ""
 
-      [Service]
-      Type=oneshot
-      RemainAfterExit=yes
-      ExecStart=/usr/local/bin/harden.sh
+  # Legacy daemons
+  - path: /etc/systemd/system/acpid.service
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/acpid.socket
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/acpid.path
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/atd.service
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/cron.service
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/logrotate.service
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/rc-local.service
+    permissions: '0000'
+    content: ""
 
-      [Install]
-      WantedBy=multi-user.target
+  # Storage related
+  - path: /etc/systemd/system/lvm2-monitor.service
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/lvm2-lvmpolld.socket
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/dm-event.socket
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/mdadm-shutdown.service
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/e2scrub_all.service
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/e2scrub_reap.service
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/fstrim.service
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/iscsi.service
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/iscsid.service
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/iscsi-shutdown.service
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/fcoe.service
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/rbdmap.service
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/fstrim.timer
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/e2scrub_all.timer
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/blk-availability.service
+    permissions: '0000'
+    content: ""
 
-  - path: /usr/local/bin/harden.sh
-    permissions: '0755'
-    content: |
-      #!/bin/sh
-      set -e
+  # Desktop/interactive junk
+  - path: /etc/systemd/system/display-manager.service
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/console-screen.service
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/plymouth-quit-wait.service
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/plymouth-start.service
+    permissions: '0000'
+    content: ""
 
-      # Disable package mgmt noise
-      systemctl disable --now apt-daily.timer apt-daily-upgrade.timer unattended-upgrades.service || true
-      systemctl mask unattended-upgrades.service || true
-      systemctl disable --now dpkg-db-backup.service man-db.timer || true
+  # Extra TTYs
+  - path: /etc/systemd/system/getty@.service
+    permissions: '0000'
+    content: ""
+    # Hetzner Cloud recovery console
+  - path: /etc/systemd/system/getty@tty1.service
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/getty@tty2.service
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/getty@tty3.service
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/getty@tty4.service
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/getty@tty5.service
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/getty@tty6.service
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/serial-getty@ttyAMA0.service
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/serial-getty@ttyS1.service
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/serial-getty@ttyS2.service
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/serial-getty@ttyS3.service
+    permissions: '0000'
+    content: ""
 
-      # Disable legacy daemons not used
-      systemctl disable --now acpid.service acpid.socket acpid.path || true
-      systemctl disable --now atd.service || true
-      systemctl disable --now cron.service logrotate.service rc-local.service || true
+  # Systemd nice-to-haves
+  - path: /etc/systemd/system/systemd-repart.service
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/systemd-pstore.service
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/dpkg-db-backup.timer
+    permissions: '0000'
+    content: ""
 
-      # Storage-related stuff not relevant for ephemeral hosts
-      systemctl disable --now lvm2-monitor.service lvm2-lvmpolld.socket dm-event.socket mdadm-shutdown.service || true
-      systemctl disable --now e2scrub_all.service e2scrub_reap.service fstrim.service || true
-      systemctl disable --now iscsi.service iscsid.service iscsi-shutdown.service fcoe.service rbdmap.service || true
-
-      # Desktop/interactive junk
-      systemctl disable --now display-manager.service console-screen.service plymouth-quit-wait.service plymouth-start.service || true
-
-      # Get rid of unused ttys (leave tty1 for console recovery)
-      for n in 2 3 4 5 6; do
-        systemctl disable --now getty@tty$n.service || true
-      done
-      # drop extra serial consoles
-      systemctl disable --now serial-getty@ttyAMA0.service serial-getty@ttyS1.service serial-getty@ttyS2.service serial-getty@ttyS3.service || true
-
-      # Kill systemd "nice to haves"
-      systemctl disable --now systemd-repart.service systemd-pstore.service || true
-
-      # Kill legacy log service (we use journald)
-      systemctl disable --now rsyslog.service || true
-      systemctl mask rsyslog.service || true
-
-      # Restart journald so it picks up a clean state
-      systemctl restart systemd-journald
+  # Legacy logging
+  - path: /etc/systemd/system/rsyslog.service
+    permissions: '0000'
+    content: ""
+  - path: /etc/systemd/system/logrotate.timer
+    permissions: '0000'
+    content: ""
 
   # Firewall service
   - path: /etc/systemd/system/setup-firewall.service
@@ -274,7 +374,6 @@ write_files:
 runcmd:
   - sysctl --system
   - systemctl daemon-reload
-  - systemctl enable --now harden.service
   - systemctl enable --now setup-firewall.service
   - systemctl enable --now setup-docker-compose.service
   - systemctl enable --now reconcile.timer
