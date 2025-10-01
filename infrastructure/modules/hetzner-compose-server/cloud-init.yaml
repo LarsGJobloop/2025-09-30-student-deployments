@@ -39,6 +39,18 @@ write_files:
     content: |
       ${indented_reconciliation_script}
 
+  # TODO! Disable SSH once we have verified the module works
+  - path: /etc/ssh/sshd_config.d/99-temporary-dev.conf
+    permissions: '0644'
+    content: |
+      PermitRootLogin prohibit-password
+      PasswordAuthentication no
+      ChallengeResponseAuthentication no
+      PubkeyAuthentication yes
+      AllowAgentForwarding no
+      AllowTcpForwarding no
+      X11Forwarding no
+
 runcmd:
   # Add Docker's official GPG Signing key
   - install -m 0755 -d /etc/apt/keyrings
