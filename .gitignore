@@ -2,3 +2,6 @@
 .terraform
 *.tfvars
 *.tfstate*
+
+# Ignore development SSH identity
+ssh-identity
