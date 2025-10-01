@@ -7,6 +7,7 @@ package_upgrade: true
 # Add baseline packages
 packages:
   - git
+  - ufw
 
 write_files:
   # Setup the reconciliation data (systemd)
@@ -52,6 +53,14 @@ write_files:
       X11Forwarding no
 
 runcmd:
+  # Limit to only standard web ports
+  - ufw allow 22/tcp # TODO! Remove once we know the module is working
+  - ufw allow 80/tcp
+  - ufw allow 443/tcp
+  - ufw default deny incoming
+  - ufw default allow outgoing
+  - ufw --force enable
+
   # Add Docker's official GPG Signing key
   - install -m 0755 -d /etc/apt/keyrings
   - curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
