@@ -16,9 +16,12 @@ write_files:
     content: |
       [Unit]
       Description=Run reconciliation script
+      Requires=setup-docker-compose.service
+      After=setup-docker-compose.service
 
       [Service]
       Type=oneshot
+      RemainAfterExit=yes
       ExecStart=/usr/local/bin/reconcile.sh
 
   - path: /etc/systemd/system/reconcile.timer
@@ -46,8 +49,125 @@ write_files:
     content: |
       [Journal]
       SystemMaxUse=200M
+  
+  # Prune Hetzner Debian-12 image
+  - path: /etc/systemd/system/harden.service
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=Disable unneeded baseline services
+      ConditionFirstBoot=yes
+      After=network.target
+
+      [Service]
+      Type=oneshot
+      RemainAfterExit=yes
+      ExecStart=/usr/local/bin/harden.sh
+
+  - path: /usr/local/bin/harden.sh
+    permissions: '0755'
+    content: |
+      #!/bin/sh
+      set -e
+
+      # Disable unnecessary services
+      systemctl disable --now atd.service
+      systemctl disable --now acpid.service acpid.socket acpid.path
+      systemctl disable --now man-db.timer
+      systemctl disable --now apt-daily.timer apt-daily-upgrade.timer unattended-upgrades.service
+      systemctl disable --now lvm2-monitor.service lvm2-lvmpolld.socket dm-event.socket mdadm-shutdown.service || true
+
+      # Prevent reenabling of service
+      systemctl mask unattended-upgrades.service
+
+      # Apply journald config
+      systemctl restart systemd-journald
+
+  # Firewall script
+  - path: /etc/systemd/system/setup-firewall.service
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=Setup strict firewall rules
+      ConditionFirstBoot=yes
+      After=network.target
+      Before=ufw.service
+      Before=reconcile.service
+
+      [Service]
+      Type=oneshot
+      RemainAfterExit=yes
+      ExecStart=/usr/local/bin/setup-firewall.sh
+
+  - path: /usr/local/bin/setup-firewall.sh
+    permissions: '0755'
+    content: |
+      #!/bin/sh
+      set -e
+      ufw allow 22/tcp  # TODO! remove once SSH is gone
+      ufw allow 80/tcp
+      ufw allow 443/tcp
+      ufw default deny incoming
+      ufw default allow outgoing
+      ufw --force enable
+
+  # Docker install script
+  # TODO! Figure out how to sandbox Docker Compose (iptables and volumes)
+  - path: /etc/systemd/system/setup-docker-compose.service
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=Setup Docker Compose with dependencies
+      ConditionFirstBoot=yes
+      Before=reconcile.service
+      Wants=network-online.target
+      After=network-online.target
+
+      [Service]
+      Type=oneshot
+      RemainAfterExit=yes
+      ExecStart=/usr/local/bin/setup-docker-compose.sh
+
+  - path: /usr/local/bin/setup-docker-compose.sh
+    permissions: '0755'
+    content: |
+      #!/bin/sh
+      set -e
+      install -m 0755 -d /etc/apt/keyrings
+      curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+      chmod a+r /etc/apt/keyrings/docker.gpg
+      echo \
+        "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+        https://download.docker.com/linux/debian \
+        $(lsb_release -cs) stable" \
+        > /etc/apt/sources.list.d/docker.list
+      apt-get update
+      apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+      systemctl enable --now docker
 
   # TODO! Disable SSH once we have verified the module works
+  # SSH removal script
+  # - path: /etc/systemd/system/disable-ssh.service
+  #   permissions: '0644'
+  #   content: |
+  #     [Unit]
+  #     Description=Disable SSH access
+  #     ConditionFirstBoot=yes
+  #     After=network.target
+
+  #     [Service]
+  #     Type=oneshot
+  #     RemainAfterExit=yes
+  #     ExecStart=/usr/local/bin/disable-ssh.sh
+
+  # - path: /usr/local/bin/disable-ssh.sh
+  #   permissions: '0755'
+  #   content: |
+  #     #!/bin/sh
+  #     set -e
+  #     systemctl disable --now ssh.service
+
+  # Temporary hardening
   - path: /etc/ssh/sshd_config.d/99-temporary-dev.conf
     permissions: '0644'
     content: |
@@ -60,50 +180,8 @@ write_files:
       X11Forwarding no
 
 runcmd:
-  # Disable unecessary services from the base image
-  - systemctl disable --now atd.service
-  - systemctl disable --now acpid.service acpid.socket acpid.path
-  - systemctl disable --now man-db.timer
-  - systemctl disable --now apt-daily.timer apt-daily-upgrade.timer unattended-upgrades.service
-  - systemctl disable --now lvm2-monitor.service lvm2-lvmpolld.socket dm-event.socket mdadm-shutdown.service || true
-
-  # Apply journald configuration
-  - systemctl restart systemd-journald
-
-  # Limit to only standard web ports
-  - ufw allow 22/tcp # TODO! Remove once we know the module is working
-  - ufw allow 80/tcp
-  - ufw allow 443/tcp
-  - ufw default deny incoming
-  - ufw default allow outgoing
-  - ufw --force enable
-
-  # Add Docker's official GPG Signing key
-  - install -m 0755 -d /etc/apt/keyrings
-  - curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-  - chmod a+r /etc/apt/keyrings/docker.gpg
-
-  # Add Docker's official repository
-  - |
-    echo \
-      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
-      https://download.docker.com/linux/debian \
-      $(lsb_release -cs) stable" \
-      > /etc/apt/sources.list.d/docker.list
-
-  # Update package index and install Docker components
-  - apt-get update
-  - apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
-
-  # Ensure docker is running
-  - systemctl enable docker
-  - systemctl start docker
-
-  # Create GitOps repo dir
-  - mkdir -p /srv/gitops
-
-  # Setup the reconciliation service
-  - chmod +x /usr/local/bin/reconcile.sh
   - systemctl daemon-reload
+  - mkdir -p /srv/gitops # Create the GitOps repository directory
+  - chmod +x /usr/local/bin/reconcile.sh
   - systemctl enable reconcile.timer
   - systemctl start reconcile.timer
