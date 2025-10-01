@@ -60,6 +60,13 @@ write_files:
       X11Forwarding no
 
 runcmd:
+  # Disable unecessary services from the base image
+  - systemctl disable --now atd.service
+  - systemctl disable --now acpid.service acpid.socket acpid.path
+  - systemctl disable --now man-db.timer
+  - systemctl disable --now apt-daily.timer apt-daily-upgrade.timer unattended-upgrades.service
+  - systemctl disable --now lvm2-monitor.service lvm2-lvmpolld.socket dm-event.socket mdadm-shutdown.service || true
+
   # Apply journald configuration
   - systemctl restart systemd-journald
 
