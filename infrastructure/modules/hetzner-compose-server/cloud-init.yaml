@@ -187,6 +187,9 @@ write_files:
   - path: /etc/systemd/system/plymouth-start.service
     permissions: '0000'
     content: ""
+  - path: /etc/systemd/system/systemd-fsckd.socket
+    permissions: '0000'
+    content: ""
 
   # Extra TTYs
   - path: /etc/systemd/system/getty@.service
@@ -240,6 +243,11 @@ write_files:
     permissions: '0000'
     content: ""
   - path: /etc/systemd/system/logrotate.timer
+    permissions: '0000'
+    content: ""
+  
+  # Legacy compatability
+  - path: /etc/systemd/system/systemd-initctl.socket
     permissions: '0000'
     content: ""
 
