@@ -51,7 +51,39 @@ write_files:
     content: |
       [Journal]
       SystemMaxUse=200M
-  
+
+  # Harden Kernel and Network
+  - path: /etc/sysctl.d/99-hardening.conf
+    permissions: '0644'
+    content: |
+      # Kernel hardening
+      kernel.kptr_restrict=2
+      kernel.dmesg_restrict=1
+      fs.protected_symlinks=1
+      fs.protected_hardlinks=1
+      kernel.perf_event_paranoid=2
+      kernel.pid_max=65536
+
+      # Network - IPv4
+      net.ipv4.conf.all.rp_filter=2
+      net.ipv4.conf.default.rp_filter=2
+      net.ipv4.conf.all.accept_redirects=0
+      net.ipv4.conf.default.accept_redirects=0
+      net.ipv4.conf.all.send_redirects=0
+      net.ipv4.conf.default.send_redirects=0
+      net.ipv4.icmp_echo_ignore_broadcasts=1
+      net.ipv4.icmp_ignore_bogus_error_responses=1
+      net.ipv4.conf.all.accept_source_route=0
+      net.ipv4.conf.default.accept_source_route=0
+      net.ipv4.tcp_syncookies=1
+      net.ipv4.tcp_fin_timeout=15
+
+      # Network - IPv6
+      net.ipv6.conf.all.accept_redirects=0
+      net.ipv6.conf.default.accept_redirects=0
+      net.ipv6.conf.all.accept_source_route=0
+      net.ipv6.conf.default.accept_source_route=0
+
   # Harden baseline image
   - path: /etc/systemd/system/harden.service
     permissions: '0644'
@@ -238,6 +270,7 @@ write_files:
       X11Forwarding no
 
 runcmd:
+  - sysctl --system
   - systemctl daemon-reload
   - systemctl enable --now harden.service
   - systemctl enable --now setup-firewall.service
