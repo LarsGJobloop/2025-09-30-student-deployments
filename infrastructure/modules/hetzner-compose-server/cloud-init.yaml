@@ -176,10 +176,8 @@ write_files:
 
 runcmd:
   - systemctl daemon-reload
-  - systemctl start harden.service
-  - systemctl start setup-firewall.service
-  - systemctl start setup-docker-compose.service
+  - systemctl enable --now harden.service
+  - systemctl enable --now setup-firewall.service
+  - systemctl enable --now setup-docker-compose.service
   - mkdir -p /srv/gitops # Create the GitOps repository directory
-  - chmod +x /usr/local/bin/reconcile.sh
-  - systemctl enable reconcile.timer
-  - systemctl start reconcile.timer
+  - systemctl enable --now reconcile.timer
