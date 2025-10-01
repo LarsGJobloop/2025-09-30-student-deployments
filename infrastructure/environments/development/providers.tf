@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     hcloud = {
-      source = "hetznercloud/hcloud"
+      source  = "hetznercloud/hcloud"
       version = "1.53.1"
     }
   }
@@ -9,7 +9,7 @@ terraform {
 
 variable "hcloud_token" {
   description = "Hetzner API token"
-  sensitive = true
+  sensitive   = true
 }
 
 provider "hcloud" {

@@ -7,5 +7,5 @@ resource "github_repository" "github_repository" {
 
 output "github_repository_address" {
   description = "Address to the GitHub repository."
-  value = github_repository.github_repository.http_clone_url
+  value       = github_repository.github_repository.http_clone_url
 }
