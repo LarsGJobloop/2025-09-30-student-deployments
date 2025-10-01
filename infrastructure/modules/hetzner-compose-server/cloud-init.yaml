@@ -102,6 +102,10 @@ write_files:
       # Kill systemd "nice to haves"
       systemctl disable --now systemd-repart.service systemd-pstore.service || true
 
+      # Kill legacy log service (we use journald)
+      systemctl disable --now rsyslog.service || true
+      systemctl mask rsyslog.service || true
+
       # Restart journald so it picks up a clean state
       systemctl restart systemd-journald
 
