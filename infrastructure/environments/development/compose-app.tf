@@ -1,6 +1,6 @@
 resource "hcloud_ssh_key" "debug_key" {
   name       = "debug_key"
-  public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMcjUpCUBeS4utOWaHwMXkJYMaTRYEnXFnGTPnA3Hp87"
+  public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHQan0gAZ30s7tJ6oX6603FJGjn6EF0ZlJGHc4IRFKn5"
 }
 
 module "compose_server" {

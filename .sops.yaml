@@ -13,3 +13,8 @@ creation_rules:
     key_groups:
       - age:
           - *larsg
+  # Debug SSH Identity
+  - path_regex: ssh-identity
+    key_groups:
+      - age:
+          - *larsg
