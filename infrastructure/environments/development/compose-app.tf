@@ -8,7 +8,7 @@ module "compose_server" {
   name = "compose-server"
 
   reconciliation_interval = "1min"
-  git_source = "github+LarsGJobloop/student-deployment"
+  git_source = "https://github.com/LarsGJobloop/2025-09-30-student-deployments.git"
   branch = "main"
   manifest_path = "manifests/development/compose.yaml"
 
