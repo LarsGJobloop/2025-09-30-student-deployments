@@ -72,12 +72,36 @@ write_files:
     content: |
       #!/bin/sh
       set -e
-      systemctl disable --now atd.service
-      systemctl disable --now acpid.service acpid.socket acpid.path
-      systemctl disable --now man-db.timer
+
+      # Disable package mgmt noise
       systemctl disable --now apt-daily.timer apt-daily-upgrade.timer unattended-upgrades.service
-      systemctl disable --now lvm2-monitor.service lvm2-lvmpolld.socket dm-event.socket mdadm-shutdown.service || true
       systemctl mask unattended-upgrades.service
+      systemctl disable --now dpkg-db-backup.service man-db.timer
+
+      # Disable legacy daemons not used
+      systemctl disable --now acpid.service acpid.socket acpid.path || true
+      systemctl disable --now atd.service || true
+      systemctl disable --now cron.service logrotate.service rc-local.service || true
+
+      # Storage-related stuff not relevant for ephemeral hosts
+      systemctl disable --now lvm2-monitor.service lvm2-lvmpolld.socket dm-event.socket mdadm-shutdown.service || true
+      systemctl disable --now e2scrub_all.service e2scrub_reap.service fstrim.service || true
+      systemctl disable --now iscsi.service iscsid.service iscsi-shutdown.service fcoe.service rbdmap.service || true
+
+      # Desktop/interactive junk
+      systemctl disable --now display-manager.service console-screen.service plymouth-quit-wait.service plymouth-start.service || true
+
+      # Get rid of unused ttys (leave tty1 for console recovery)
+      for n in 2 3 4 5 6; do
+        systemctl disable --now getty@tty$n.service || true
+      done
+      # drop extra serial consoles
+      systemctl disable --now serial-getty@ttyAMA0.service serial-getty@ttyS1.service serial-getty@ttyS2.service serial-getty@ttyS3.service || true
+
+      # Kill systemd "nice to haves"
+      systemctl disable --now systemd-repart.service systemd-pstore.service || true
+
+      # Restart journald so it picks up a clean state
       systemctl restart systemd-journald
 
   # Firewall service
