@@ -20,11 +20,11 @@
       devShells = withPkgs (pkgs: {
         default = pkgs.mkShell {
           packages = with pkgs; [
-            # Operation tooling
             opentofu # Infrastructure and SaaS management
             sops # Secrets managements
             age # Encryption tool
             just # Task runner
+            docker # Container Toolchain
           ];
         };
       });

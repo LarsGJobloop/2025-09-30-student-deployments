@@ -1,0 +1,7 @@
+name: student-deployment-1
+
+services:
+  verifier:
+    image: ghcr.io/stefanprodan/podinfo
+    ports:
+      - 80:9898
