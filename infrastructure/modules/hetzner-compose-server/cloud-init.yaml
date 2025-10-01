@@ -16,6 +16,7 @@ write_files:
       Description=Run reconciliation script
       Requires=setup-docker-compose.service
       After=setup-docker-compose.service
+      After=docker.service
 
       [Service]
       Type=oneshot
