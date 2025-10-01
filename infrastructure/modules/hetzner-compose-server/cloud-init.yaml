@@ -235,8 +235,8 @@ write_files:
 
 runcmd:
   - systemctl daemon-reload
-  - systemctl start harden.service
-  - systemctl start setup-firewall.service
-  - systemctl start setup-docker-compose.service
-  - systemctl start reconcile.timer
-  - systemctl start docker-prune.timer
+  - systemctl enable --now harden.service
+  - systemctl enable --now setup-firewall.service
+  - systemctl enable --now setup-docker-compose.service
+  - systemctl enable --now reconcile.timer
+  - systemctl enable --now docker-prune.timer
