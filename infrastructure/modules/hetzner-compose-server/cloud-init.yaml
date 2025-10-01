@@ -107,9 +107,9 @@ write_files:
       set -e
 
       # Disable package mgmt noise
-      systemctl disable --now apt-daily.timer apt-daily-upgrade.timer unattended-upgrades.service
-      systemctl mask unattended-upgrades.service
-      systemctl disable --now dpkg-db-backup.service man-db.timer
+      systemctl disable --now apt-daily.timer apt-daily-upgrade.timer unattended-upgrades.service || true
+      systemctl mask unattended-upgrades.service || true
+      systemctl disable --now dpkg-db-backup.service man-db.timer || true
 
       # Disable legacy daemons not used
       systemctl disable --now acpid.service acpid.socket acpid.path || true
