@@ -10,7 +10,7 @@ module "compose_server" {
   reconciliation_interval = "1min"
   git_source = "https://github.com/LarsGJobloop/2025-09-30-student-deployments.git"
   branch = "main"
-  manifest_path = "manifests/development/compose.yaml"
+  manifest_path = "manifests/deployments/development/compose.yaml"
 
   server_type = "cax21" # Hetzner SKU -> arch=x86, cores=4vCPU, ram=8GB, hdd=80GB
   datacenter = "hel1-dc2" # Helsinki
