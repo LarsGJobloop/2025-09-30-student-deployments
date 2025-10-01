@@ -141,6 +141,33 @@ write_files:
       apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
       systemctl enable --now docker
 
+  # Docker prune script (unreferenced images)
+  - path: /etc/systemd/system/docker-prune.service
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=Nightly Docker prune
+      After=docker.service
+      Requires=docker.service
+
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/bin/docker system prune --force
+
+  - path: /etc/systemd/system/docker-prune.timer
+    permissions: '0644'
+    content: |
+      [Unit]
+      Description=Run nightly docker prune
+
+      [Timer]
+      OnCalendar=daily
+      RandomizedDelaySec=1h
+      Persistent=true
+
+      [Install]
+      WantedBy=timers.target
+
   # TODO! Disable SSH once we have verified the module works
   # SSH removal script
   # - path: /etc/systemd/system/disable-ssh.service
@@ -179,5 +206,6 @@ runcmd:
   - systemctl enable --now harden.service
   - systemctl enable --now setup-firewall.service
   - systemctl enable --now setup-docker-compose.service
+  - systemctl enable --now docker-prune.timer
   - mkdir -p /srv/gitops # Create the GitOps repository directory
   - systemctl enable --now reconcile.timer
