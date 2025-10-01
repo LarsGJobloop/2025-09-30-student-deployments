@@ -373,7 +373,12 @@ write_files:
 
 runcmd:
   - sysctl --system
+  
+  # Kill services that where already running
   - systemctl daemon-reload
+  - systemctl disable --now atd.service cron.service unattended-upgrades.service serial-getty@ttyAMA0.service serial-getty@ttyS0.service
+  - systemctl daemon-reexec
+
   - systemctl enable --now setup-firewall.service
   - systemctl enable --now setup-docker-compose.service
   - systemctl enable --now reconcile.timer
