@@ -10,7 +10,7 @@ packages:
   - ufw
 
 write_files:
-  # Setup the reconciliation data (systemd)
+  # Setup the reconciliation timer
   - path: /etc/systemd/system/reconcile.service
     permissions: '0644'
     content: |
@@ -21,7 +21,6 @@ write_files:
 
       [Service]
       Type=oneshot
-      RemainAfterExit=yes
       ExecStart=/usr/local/bin/reconcile.sh
 
   - path: /etc/systemd/system/reconcile.timer
@@ -56,7 +55,6 @@ write_files:
     content: |
       [Unit]
       Description=Disable unneeded baseline services
-      ConditionFirstBoot=yes
       After=network.target
 
       [Service]
@@ -89,7 +87,6 @@ write_files:
     content: |
       [Unit]
       Description=Setup strict firewall rules
-      ConditionFirstBoot=yes
       After=network.target
       Before=ufw.service
       Before=reconcile.service
@@ -118,7 +115,6 @@ write_files:
     content: |
       [Unit]
       Description=Setup Docker Compose with dependencies
-      ConditionFirstBoot=yes
       Before=reconcile.service
       Wants=network-online.target
       After=network-online.target
@@ -152,7 +148,6 @@ write_files:
   #   content: |
   #     [Unit]
   #     Description=Disable SSH access
-  #     ConditionFirstBoot=yes
   #     After=network.target
 
   #     [Service]
@@ -181,6 +176,9 @@ write_files:
 
 runcmd:
   - systemctl daemon-reload
+  - systemctl start harden.service
+  - systemctl start setup-firewall.service
+  - systemctl start setup-docker-compose.service
   - mkdir -p /srv/gitops # Create the GitOps repository directory
   - chmod +x /usr/local/bin/reconcile.sh
   - systemctl enable reconcile.timer
