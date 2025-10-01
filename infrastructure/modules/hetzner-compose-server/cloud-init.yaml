@@ -1,16 +1,14 @@
 #cloud-config
 
-# Upgrade on first boot
 package_update: true
 package_upgrade: true
 
-# Add baseline packages
 packages:
   - git
   - ufw
 
 write_files:
-  # Setup the reconciliation timer
+  # Reconciliation service & timer
   - path: /etc/systemd/system/reconcile.service
     permissions: '0644'
     content: |
@@ -21,7 +19,11 @@ write_files:
 
       [Service]
       Type=oneshot
+      ExecStartPre=/bin/mkdir -p /srv/gitops
       ExecStart=/usr/local/bin/reconcile.sh
+
+      [Install]
+      WantedBy=multi-user.target
 
   - path: /etc/systemd/system/reconcile.timer
     permissions: '0644'
@@ -49,7 +51,7 @@ write_files:
       [Journal]
       SystemMaxUse=200M
   
-  # Prune Hetzner Debian-12 image
+  # Harden baseline image
   - path: /etc/systemd/system/harden.service
     permissions: '0644'
     content: |
@@ -62,26 +64,23 @@ write_files:
       RemainAfterExit=yes
       ExecStart=/usr/local/bin/harden.sh
 
+      [Install]
+      WantedBy=multi-user.target
+
   - path: /usr/local/bin/harden.sh
     permissions: '0755'
     content: |
       #!/bin/sh
       set -e
-
-      # Disable unnecessary services
       systemctl disable --now atd.service
       systemctl disable --now acpid.service acpid.socket acpid.path
       systemctl disable --now man-db.timer
       systemctl disable --now apt-daily.timer apt-daily-upgrade.timer unattended-upgrades.service
       systemctl disable --now lvm2-monitor.service lvm2-lvmpolld.socket dm-event.socket mdadm-shutdown.service || true
-
-      # Prevent reenabling of service
       systemctl mask unattended-upgrades.service
-
-      # Apply journald config
       systemctl restart systemd-journald
 
-  # Firewall script
+  # Firewall service
   - path: /etc/systemd/system/setup-firewall.service
     permissions: '0644'
     content: |
@@ -96,6 +95,9 @@ write_files:
       RemainAfterExit=yes
       ExecStart=/usr/local/bin/setup-firewall.sh
 
+      [Install]
+      WantedBy=multi-user.target
+
   - path: /usr/local/bin/setup-firewall.sh
     permissions: '0755'
     content: |
@@ -108,8 +110,7 @@ write_files:
       ufw default allow outgoing
       ufw --force enable
 
-  # Docker install script
-  # TODO! Figure out how to sandbox Docker Compose (iptables and volumes)
+  # Docker install
   - path: /etc/systemd/system/setup-docker-compose.service
     permissions: '0644'
     content: |
@@ -123,6 +124,9 @@ write_files:
       Type=oneshot
       RemainAfterExit=yes
       ExecStart=/usr/local/bin/setup-docker-compose.sh
+
+      [Install]
+      WantedBy=multi-user.target
 
   - path: /usr/local/bin/setup-docker-compose.sh
     permissions: '0755'
@@ -141,7 +145,7 @@ write_files:
       apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
       systemctl enable --now docker
 
-  # Docker prune script (unreferenced images)
+  # Docker prune
   - path: /etc/systemd/system/docker-prune.service
     permissions: '0644'
     content: |
@@ -153,6 +157,9 @@ write_files:
       [Service]
       Type=oneshot
       ExecStart=/usr/bin/docker system prune --force
+
+      [Install]
+      WantedBy=multi-user.target
 
   - path: /etc/systemd/system/docker-prune.timer
     permissions: '0644'
@@ -203,9 +210,8 @@ write_files:
 
 runcmd:
   - systemctl daemon-reload
-  - systemctl enable --now harden.service
-  - systemctl enable --now setup-firewall.service
-  - systemctl enable --now setup-docker-compose.service
-  - systemctl enable --now docker-prune.timer
-  - mkdir -p /srv/gitops # Create the GitOps repository directory
-  - systemctl enable --now reconcile.timer
+  - systemctl start harden.service
+  - systemctl start setup-firewall.service
+  - systemctl start setup-docker-compose.service
+  - systemctl start reconcile.timer
+  - systemctl start docker-prune.timer
