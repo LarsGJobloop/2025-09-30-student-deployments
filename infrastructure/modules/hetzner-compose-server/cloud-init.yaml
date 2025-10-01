@@ -51,6 +51,7 @@ write_files:
     content: |
       [Journal]
       SystemMaxUse=200M
+      RuntimeMaxUse=50M
 
   # Harden Kernel and Network
   - path: /etc/sysctl.d/99-hardening.conf
