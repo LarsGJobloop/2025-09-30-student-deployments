@@ -40,6 +40,13 @@ write_files:
     content: |
       ${indented_reconciliation_script}
 
+  # Limit journald log retention
+  - path: /etc/systemd/journald.conf.d/99-limits.conf
+    permissions: '0644'
+    content: |
+      [Journal]
+      SystemMaxUse=200M
+
   # TODO! Disable SSH once we have verified the module works
   - path: /etc/ssh/sshd_config.d/99-temporary-dev.conf
     permissions: '0644'
@@ -53,6 +60,9 @@ write_files:
       X11Forwarding no
 
 runcmd:
+  # Apply journald configuration
+  - systemctl restart systemd-journald
+
   # Limit to only standard web ports
   - ufw allow 22/tcp # TODO! Remove once we know the module is working
   - ufw allow 80/tcp
