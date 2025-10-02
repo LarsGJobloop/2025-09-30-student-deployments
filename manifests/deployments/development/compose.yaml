@@ -32,8 +32,8 @@ services:
       - "traefik.http.routers.traefik.tls.certresolver=domeneshop"
     # TODO! Fix secret handling (instance Identity with SOPS + Age)
     environment:
-      - DOMENESHOP_API_CLIENT_ID_FILE=/run/secrets/domeneshop_client_id
-      - DOMENESHOP_API_CLIENT_SECRET_FILE=/run/secrets/domeneshop_client_secret
+      - DOMENESHOP_API_TOKEN_FILE=/run/secrets/domeneshop_client_id
+      - DOMENESHOP_API_SECRET_FILE=/run/secrets/domeneshop_client_secret
     secrets:
       - domeneshop_client_id
       - domeneshop_client_secret
