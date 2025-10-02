@@ -52,6 +52,6 @@ services:
 # TODO! Fix secret handling (instance Identity with SOPS + Age)
 secrets:
   domeneshop_client_id:
-    file: ./secrets/domeneshop_client_id
+    file: /etc/docker/secrets/domeneshop_client_id
   domeneshop_client_secret:
-    file: ./secrets/domeneshop_client_secret
+    file: /etc/docker/secrets/domeneshop_client_secret
