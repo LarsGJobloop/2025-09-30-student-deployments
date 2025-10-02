@@ -1,8 +1,11 @@
 #!/bin/bash
 set -e
 
+# ------------------------
+# - Repo synchronization -
+# ------------------------
+
 REPO_DIR="/srv/gitops/repo"
-COMPOSE_FILE="$REPO_DIR/${compose_path}"
 
 if [ ! -d "$REPO_DIR/.git" ]; then
     echo "[INFO] Initial clone of repo..."
@@ -14,5 +17,20 @@ else
     git -C "$REPO_DIR" clean -fd
 fi
 
-docker compose --file "$COMPOSE_FILE" pull
-docker compose --file "$COMPOSE_FILE" up --detach --remove-orphans
+# ----------------------------
+# - Docker Compose execution -
+# ----------------------------
+
+COMPOSE_FILE="$REPO_DIR/${compose_path}"
+ENV_FILE="$(dirname "$COMPOSE_FILE")/.env"
+
+COMPOSE_CMD="docker compose --file $COMPOSE_FILE"
+
+if [ -f "$ENV_FILE" ]; then
+    echo "[INFO] Using env file: $ENV_FILE"
+    COMPOSE_CMD="$COMPOSE_CMD --env-file $ENV_FILE"
+fi
+
+echo "[INFO] Pulling and running Docker Compose..."
+$COMPOSE_CMD pull
+$COMPOSE_CMD up --detach --remove-orphans
