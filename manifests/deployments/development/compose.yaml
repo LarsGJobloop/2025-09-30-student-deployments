@@ -47,6 +47,27 @@ services:
       - "traefik.http.services.verifier.loadbalancer.server.port=9898"
       - "traefik.http.routers.verifier.tls.certresolver=domeneshop"
 
+  # ----------------------------------
+  # - Identity and Access Management -
+  # ----------------------------------
+
+  hydra:
+    image: oryd/hydra:v2.2.0
+    command:
+      serve all --dangerous-force-http # We are behind a reverse proxy, so we can force HTTP
+    environment:
+      - DSN=memory
+      - URLS_SELF_ISSUER=https://hydra.${DOMAIN}
+      - URLS_CONSENT=https://consent.${DOMAIN}
+      - URLS_LOGIN=https://login.${DOMAIN}
+      - SECRETS_SYSTEM=super-long-random-secret
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.hydra.rule=Host(`hydra.${DOMAIN}`)"
+      - "traefik.http.routers.hydra.entrypoints=websecure"
+      - "traefik.http.routers.hydra.tls.certresolver=domeneshop"
+      - "traefik.http.services.hydra.loadbalancer.server.port=4444"
+
 volumes:
   letsencrypt:
 
