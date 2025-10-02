@@ -22,3 +22,12 @@ services:
       - "traefik.http.routers.app.rule=Host(`ingress.${DOMAIN}`)"
       - "traefik.http.routers.traefik.entrypoints=web"
       - "traefik.http.routers.traefik.service=api@internal"
+
+  verifier:
+    image: "ghcr.io/stefanprodan/podinfo"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.verifier.rule=Host(`verifier.${DOMAIN}`)"
+      - "traefik.http.routers.verifier.entrypoints=web"
+      - "traefik.http.routers.verifier.service=verifier"
+      - "traefik.http.services.verifier.loadbalancer.server.port=9898"
