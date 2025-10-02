@@ -23,7 +23,7 @@ services:
       - "443:443"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "./letsencrypt:/letsencrypt"
+      - "letsencrypt:/letsencrypt"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.traefik.rule=Host(`ingress.${DOMAIN}`)"
@@ -46,6 +46,9 @@ services:
       - "traefik.http.routers.verifier.entrypoints=websecure"
       - "traefik.http.services.verifier.loadbalancer.server.port=9898"
       - "traefik.http.routers.verifier.tls.certresolver=domeneshop"
+
+volumes:
+  letsencrypt:
 
 # TODO! Fix secret handling (instance Identity with SOPS + Age)
 secrets:
