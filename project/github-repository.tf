@@ -3,6 +3,9 @@ resource "github_repository" "github_repository" {
   description = "Deployment configuration and manifest description of student infrastructure."
 
   visibility = "public"
+
+  # Configure features
+  has_issues = true
 }
 
 output "github_repository_address" {
