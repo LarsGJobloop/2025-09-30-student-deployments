@@ -1,7 +1,24 @@
 name: student-deployment-1
 
 services:
-  verifier:
-    image: ghcr.io/stefanprodan/podinfo
+  ingress:
+    image: "traefik:v3.4"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=proxy"
+      - "--entryPoints.web.address=:80"
+      - "--api.dashboard=true"
+      - "--api.insecure=false"
     ports:
-      - 80:9898
+      - "80:80"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik.rule=PathPrefix(`/traefik`)"
+      - "traefik.http.routers.traefik.service=api@internal"
+      - "traefik.http.routers.traefik.entrypoints=web"
