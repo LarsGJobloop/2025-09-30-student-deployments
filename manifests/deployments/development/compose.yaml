@@ -7,6 +7,7 @@ services:
     security_opt:
       - no-new-privileges:true
     command:
+      - "--log.level=DEBUG" # TODO! Remove this once complete
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entryPoints.web.address=:80"
