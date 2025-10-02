@@ -18,6 +18,7 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
     labels:
+      - "traefik.enable=true"
       - "traefik.http.routers.traefik.rule=Host(`ingress.remote.development`)"
       - "traefik.http.routers.traefik.entrypoints=web"
       - "traefik.http.routers.traefik.service=api@internal"
