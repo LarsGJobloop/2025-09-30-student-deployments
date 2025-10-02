@@ -10,23 +10,48 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--entryPoints.web.address=:80"
+      - "--entryPoints.websecure.address=:443"
       - "--api.dashboard=true"
       - "--api.insecure=false"
+      # Setup DNS Challenge for TLS certificates
+      - "--certificatesresolvers.domeneshop.acme.dnschallenge=true"
+      - "--certificatesresolvers.domeneshop.acme.dnschallenge.provider=domeneshop"
+      - "--certificatesresolvers.domeneshop.acme.email=${DOMAIN_EMAIL}"
+      - "--certificatesresolvers.domeneshop.acme.storage=/letsencrypt/acme.json"
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./letsencrypt:/letsencrypt"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.traefik.rule=Host(`ingress.${DOMAIN}`)"
-      - "traefik.http.routers.traefik.entrypoints=web"
+      - "traefik.http.routers.traefik.entrypoints=websecure"
       - "traefik.http.routers.traefik.service=api@internal"
+      - "traefik.tls.stores.default.defaultgeneratedcert.resolver=cloudflare"
+      - "traefik.tls.stores.default.defaultgeneratedcert.domain.main=${DOMAIN}"
+      - "traefik.tls.stores.default.defaultgeneratedcert.domain.sans=${DOMAIN}"
+    # TODO! Fix secret handling (instance Identity with SOPS + Age)
+    environment:
+      - DOMENESHOP_API_CLIENT_ID_FILE=/run/secrets/domeneshop_client_id
+      - DOMENESHOP_API_CLIENT_SECRET_FILE=/run/secrets/domeneshop_client_secret
+    secrets:
+      - domeneshop_client_id
+      - domeneshop_client_secret
 
   verifier:
     image: "ghcr.io/stefanprodan/podinfo"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.verifier.rule=Host(`verifier.${DOMAIN}`)"
-      - "traefik.http.routers.verifier.entrypoints=web"
+      - "traefik.http.routers.verifier.entrypoints=websecure"
       - "traefik.http.routers.verifier.service=verifier"
       - "traefik.http.services.verifier.loadbalancer.server.port=9898"
+
+# TODO! Fix secret handling (instance Identity with SOPS + Age)
+secrets:
+  domeneshop_client_id:
+    file: ./secrets/domeneshop_client_id
+  domeneshop_client_secret:
+    file: ./secrets/domeneshop_client_secret
