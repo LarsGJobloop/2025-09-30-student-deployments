@@ -13,6 +13,9 @@ services:
       - "--entryPoints.websecure.address=:443"
       - "--api.dashboard=true"
       - "--api.insecure=false"
+      # Global redirect from HTTP to HTTPS
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
       # Setup DNS Challenge for TLS certificates
       - "--certificatesresolvers.domeneshop.acme.dnschallenge=true"
       - "--certificatesresolvers.domeneshop.acme.dnschallenge.provider=domeneshop"
