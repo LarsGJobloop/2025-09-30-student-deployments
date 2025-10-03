@@ -68,6 +68,18 @@ services:
       - "traefik.http.routers.hydra.tls.certresolver=domeneshop"
       - "traefik.http.services.hydra.loadbalancer.server.port=4444"
 
+  consent:
+    image: oryd/hydra-login-consent-node:latest
+    environment:
+      - HYDRA_ADMIN_URL=http://hydra:4445
+    depends_on:
+      - hydra
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.consent.rule=Host(`consent.${DOMAIN}`)"
+      - "traefik.http.routers.consent.entrypoints=websecure"
+      - "traefik.http.routers.consent.tls.certresolver=domeneshop"
+
 volumes:
   letsencrypt:
 
